@@ -5,7 +5,7 @@ You will find the slides here: `talk/talk.pdf`
 
 ## Code Examples
 
-Ex-Commands:
+### Help
 
 The command `:MapathonHelp` picks up the word under the cursor and uses `sprintf` to format the url:
 
@@ -13,7 +13,9 @@ The command `:MapathonHelp` picks up the word under the cursor and uses `sprintf
 
     :MapathonHelp www.url.com/with-%s-to-format-the-search
 
-Assembles a shell command: g:MapathonBrowserExec + g:MapathonBrowserArgs + sprintf(url,word_under_cursor)
+Assembles a shell command: `g:MapathonBrowserExec + g:MapathonBrowserArgs + sprintf(url,word_under_cursor)`
+
+### Search
 
 Call search in your browser:
 
@@ -22,7 +24,9 @@ Call search in your browser:
     :MapathonSearch please google fix my bug
     :MapathonSearch please stackoverflow fix my bug
 
-Assembles a shell command: g:MapathonBrowserExec + g:MapathonBrowserArgs + g:MapathonBrowserSearchFlag + shellescape(searchterm)
+Assembles a shell command: `g:MapathonBrowserExec + g:MapathonBrowserArgs + g:MapathonBrowserSearchFlag + shellescape(searchterm)`
+
+### Configuration
 
 Configure your browser via these variables in your `.vimrc`:
 
