@@ -230,13 +230,21 @@ endfunction    " ----------  end of function s:WarningMsg  ----------
 let s:MapathonBrowserExec = 'firefox'
 let s:MapathonBrowserArgs = ''
 
+let s:MapathonBrowserSearchFlag = '-search'
+
 call s:GetGlobalSetting ( 'MapathonBrowserExec' )
 call s:GetGlobalSetting ( 'MapathonBrowserArgs' )
+call s:GetGlobalSetting ( 'MapathonBrowserSearchFlag' )
 
 "-------------------------------------------------------------------------------
 " === Help facilities ===   {{{1
 "-------------------------------------------------------------------------------
 
+"-------------------------------------------------------------------------------
+" s:CallHelpWiki : Search a word in the dictionary.   {{{2
+"
+" Toy example: Please see 's:CallHelp' below.
+"-------------------------------------------------------------------------------
 function! s:CallHelpWiki ()
 
 	if ! executable ( s:MapathonBrowserExec )
@@ -262,6 +270,16 @@ function! s:CallHelpWiki ()
 
 endfunction    " ----------  end of function s:CallHelpWiki  ----------
 
+"-------------------------------------------------------------------------------
+" s:CallHelp : Bring up help in a browser.   {{{2
+"
+" Brings up the help for a word under the cursor.
+"
+" Parameters:
+"   url - the url, with an "%s" to include the word under the cursor (string)
+" Returns:
+"   -
+"-------------------------------------------------------------------------------
 function! s:CallHelp ( url )
 
 	if ! executable ( s:MapathonBrowserExec )
@@ -286,9 +304,39 @@ function! s:CallHelp ( url )
 endfunction    " ----------  end of function s:CallHelp  ----------
 
 "-------------------------------------------------------------------------------
-" === Cmd.-line maps ===   {{{1
+" s:CallSearch : Bring up help in a browser.   {{{2
+"
+" Brings up the help for a word under the cursor.
+"
+" Parameters:
+"   searchterm - the words to search for (string)
+" Returns:
+"   -
 "-------------------------------------------------------------------------------
+function! s:CallSearch ( searchterm )
 
+	if ! executable ( s:MapathonBrowserExec )
+		return s:ErrorMsg ( 'browser not executable: "'.s:MapathonBrowserExec.'"' )
+	endif
+
+	call system ( shellescape( s:MapathonBrowserExec ).' '.s:MapathonBrowserArgs.' '.s:MapathonBrowserSearchFlag.' '.shellescape( a:searchterm ) )
+
+	if v:shell_error != 0
+		return s:WarningMsg ( 'failed to execute browser' )
+	endif
+
+endfunction    " ----------  end of function s:CallSearch  ----------
+
+"-------------------------------------------------------------------------------
+" s:CmdLineWordDelete : Word-wise deletion on the cmd.-line.   {{{2
+"
+" Please see '<Plug>MapathonCmdLineWordDelete' below.
+"
+" Parameters:
+"   -
+" Returns:
+"   repl - the replacement string (string)
+"-------------------------------------------------------------------------------
 function! s:CmdLineWordDelete ()
 
 	" current cmd.-line and position of the cursor (adapt for string indexing)
@@ -320,11 +368,15 @@ function! s:CmdLineWordDelete ()
 	return cmdline_head.cmdline_tail
 endfunction    " ----------  end of function s:CmdLineWordDelete  ----------
 
+" }}}2
+"-------------------------------------------------------------------------------
+
 "-------------------------------------------------------------------------------
 " === Define maps ===   {{{1
 "-------------------------------------------------------------------------------
 
-command  -nargs=1  MapathonHelp  call <SID>CallHelp(<q-args>)
+command  -nargs=1  MapathonHelp    call <SID>CallHelp(<q-args>)
+command  -nargs=+  MapathonSearch  call <SID>CallSearch(<q-args>)
 
 nmap  <silent>  <Plug>MapathonCallHelpWiki  :call <SID>CallHelpWiki()<CR>
 
