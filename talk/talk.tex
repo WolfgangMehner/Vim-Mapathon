@@ -1,0 +1,774 @@
+%%=====================================================================================
+%%
+%%       Filename:  talk.tex
+%%
+%%    Description:  
+%%
+%%        Version:  1.0
+%%        Created:  20.09.2017
+%%       Revision:  none
+%%
+%%         Author:  Wolfgang Mehner (WM), wolfgang-mehner@web.de
+%%   Organization:  
+%%      Copyright:  Copyright (c) 2017, Wolfgang Mehner
+%%
+%%          Notes:  
+%%
+%%=====================================================================================
+
+\documentclass{beamer}
+
+% Packages    {{{1
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{textcomp}
+
+\usepackage{beamertexpower}
+
+\usepackage{listings}
+
+\lstset{basicstyle={\ttfamily\small}}
+\lstset{commentstyle=\itshape}
+\lstset{extendedchars=true}
+\lstset{frame=none}
+\lstset{framesep=2mm}
+\lstset{identifierstyle=\ttfamily}
+\lstset{keywordstyle=\bfseries}
+\lstset{language=C}
+\lstset{linewidth=155mm}
+\lstset{numbers=left}
+\lstset{numberstyle=\tiny}
+\lstset{showstringspaces=false}
+\lstset{stepnumber=1}
+\lstset{tabsize=2}
+
+%\usepackage[scaled]{luximono}
+
+% Settings   {{{1
+%\usetheme{Madrid}
+\usetheme{Singapore}
+
+\definecolor{darkred}{HTML}{AA0000}
+\definecolor{darkgreen}{HTML}{00DD00}
+\definecolor{darkblue}{HTML}{0000AA}
+
+\definecolor{darkmagenta}{HTML}{990099}
+
+%\makeatother
+\setbeamertemplate{footline}
+{%
+	\leavevmode%
+	\hbox{%
+		\begin{beamercolorbox}[wd=.8\paperwidth,ht=2.25ex,dp=2ex,center]{author in head/foot}%
+		\end{beamercolorbox}%
+		\begin{beamercolorbox}[wd=.2\paperwidth,ht=2.25ex,dp=2ex,center]{author in head/foot}%
+			\insertframenumber{}\hspace*{1ex}
+		\end{beamercolorbox}}%
+	\vskip0pt%
+}
+
+% ToC at beginning of sections
+\AtBeginSection[]
+{
+	\begin{frame}<beamer>{Contents}
+		\tableofcontents[currentsection]
+	\end{frame}
+}
+
+% Code   {{{1 
+\newenvironment{mycode}[0]
+{\ttfamily}
+{}
+
+\definecolor{comment}{HTML}{0000A0}
+\definecolor{keyword}{HTML}{800000}
+\definecolor{identifier}{HTML}{2E8B57}
+\definecolor{string}{HTML}{CA1F7B}
+
+\newcommand{\myind}[1]{\textcolor{white}{#1}}
+\newcommand{\mycommt}[1]{\textcolor{comment}{#1}}
+\newcommand{\myident}[1]{\textcolor{identifier}{#1}}
+\newcommand{\mykeywd}[1]{\textcolor{keyword}{#1}}
+\newcommand{\mystring}[1]{\textcolor{string}{#1}}
+
+\newcommand{\myctrlkey}[1]{\textcolor{blue}{#1}}
+
+% Title   {{{1
+\author[W. Mehner]{Wolfgang Mehner}
+\title[Vim Maps]{Vim Mapathon}
+\subtitle[Vim Maps]{An advanced introduction to maps}
+\institute[]{Vimfest 2017}
+\date[23.9.17]{23. September 2017}
+
+% Abstract   {{{1
+% 
+% I will highlight some of the more advanced uses of maps:
+% 
+% - Extending maps with expressions and VimScript
+% - Maps for the Vim command-line
+% - Custom completion on the command-line using maps (e.g. CTRL+P style completion)
+% - A short digression on custom completion for ex-commands (using tab)
+% - Putting it all together to make your plug-ins (in lack of a better word) sparkle
+% 
+% With a bit of effort and a few recurring tricks you can match or even improve upon the comfort the command-line completion your shell offers.
+% Authors of plug-ins will hopefully find some interesting suggestions, but normal users of Vim can improve their workflow as well.
+
+% Outline   {{{1
+%
+% Introduction
+% - Abbreviations
+% - Example maps
+% - Is this interesting for the regular user? (as opposed to a plug-in developer)
+%   -> Yes, to a degree. Maps can hugely improve your workflow. YOUR workflow.
+% - Is this interesting for the plug-in developer?
+%
+% Basics
+% - Notes on VimScript
+%   * scripting language: dynamic data structures, dynamic typing, pass-by-reference
+%   * but with some unusual scoping
+%   * access to options, more special variables ...
+% - Filetype plug-ins
+%   * for examples with buffer-local maps
+% - Maps depend on modes, and might be buffer-local
+% - Examples: ... (something global, something local)
+% - Examples: Brackets with different modes
+% - Maps and VimScript
+%   * calling help
+% - Expression maps with <expr>
+%   * grep support
+%
+% Maps on the Command-Line
+% - Yet another mode
+% - Example: Regexp maps
+% - Example: CTRL+BACKSPACE for deleting words (like shell)
+% - Example: Custom completion with CTRL+P (like in insert-mode)
+%
+% User-Commands and Completion
+% - ... a short digression, more of a developer topic ...
+% - Example: target completion for make
+% - Tab-completion breaks file/path completion
+%
+% Putting it all together:
+% - Example: Proper help calls
+% - Demo: Git/LaTeX/Lua?
+%   * Git: menu/maps/ex-commands
+%   * Git: expression maps (grep top, tagging in log buffer)
+%   * Git: tab-completion (help)
+%   * Git: custom completion (git log --stat luasupport-0.8..luasupport-0.9 -- plugin/lua-support.vim)
+
+% }}}1
+
+% Document
+\begin{document}
+
+% Front Matter   {{{1
+
+\maketitle
+
+% Introduction   {{{1
+
+\section*{Introduction}
+
+\begin{frame}{Let's start before the beginning}{}
+
+	To get us started, \textit{Abbreviations}: \\
+	\vspace{2mm}
+
+	\begin{mycode}
+		abbreviate  wtf   water-tight ferrets \\
+		abbreviate  != {} \textasciitilde{}= \\
+	\end{mycode}
+
+	\vspace{2mm}
+
+	In Insert mode, type 1st argument, obtain the 2nd
+\end{frame}
+
+\begin{frame}{Let's take a shortcut}{}
+
+	\textit{Maps} are more general: \\
+	\vspace{2mm}
+
+	\begin{mycode}
+		inoremap  (  {} {} {} {} ()\myctrlkey{<Left>} \\[2mm]
+		nnoremap  <C-q>       :wqall\myctrlkey{<CR>} \\
+		nnoremap  Gd {} {} {} :split\myctrlkey{<CR>}gd
+	\end{mycode}
+
+	\vspace{2mm}
+
+	Executes the right-hand side.\\
+	Can change modes, use special keys, \dots
+\end{frame}
+
+\subsection*{Goal}
+
+\begin{frame}{Lessons to be learned}{}
+	Is this interesting for the regular user? \\
+	\vspace{3mm}
+	\textrightarrow \hspace{1mm} Yes, maps can hugely improve your workflow. \\[1mm]
+	YOUR workflow.
+\end{frame}
+
+\begin{frame}{Lessons to be learned}{}
+	Is this interesting for plug-in developers? \\
+	\vspace{3mm}
+	\textrightarrow \hspace{1mm} Of central importance.\\
+	\vspace{5mm}
+	\pause
+	Maps: \textcolor{darkgreen}{fast, integrate into the workflow} - \textcolor{darkred}{accessibility?} \\
+	Menus: \textcolor{darkgreen}{good overview} - \textcolor{darkred}{access not fast enough} \\
+	Ex-commands: \textcolor{darkgreen}{powerful and flexible} - \textcolor{darkred}{still not as fast} \\
+	\vspace{2mm}
+	\pause
+	Combining all three: \textcolor{darkblue}{best usability and configurability}
+\end{frame}
+
+\begin{frame}{Make Vim great again?}{Already is!}
+
+	\textcolor{darkmagenta}{How can we beat the shell \textit{for all our regular tasks}?} \\
+	\vspace{2mm}
+	\pause
+	Provide often used commands via VimScript. \\
+	And match the comfort of the shell's tab-completion! \\
+
+	\vspace{5mm}
+	\pause
+
+	We may not beat an IDE for one specific language.\\
+	\vspace{1mm}
+	\textcolor{darkmagenta}{How can we provide consistent performance \textit{for a dozen languages}?} \\
+	\vspace{2mm}
+	\pause
+	Provide accessible and configurable features! \\
+	Otherwise all the power we provide is lost.
+
+\end{frame}
+
+\begin{frame}{Contents}{}
+	\tableofcontents
+\end{frame}
+
+% Basics   {{{1
+
+\section{Basics}
+
+\begin{frame}{VimScript}{Vim's configuration language}
+	Notes on VimScript:
+	\begin{itemize}
+		\item scripting language: \\
+			dynamic data structures, dynamic typing, pass-by-reference \dots
+		\item but with some unusual scoping: \\
+			variables and functions linked to buffers, windows, scripts, \dots
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{VimScript}{Filetype plug-ins}
+	Filetype plug-ins:
+	\begin{itemize}
+		\item<1-> script in VimScript, especially for one filetype
+		\item<1-> executed once for each new buffer
+		\item<2-> \textit{e.g.}\ define buffer-local maps
+		\item<2-> thus become filetype-specific maps
+	\end{itemize}
+\end{frame}
+
+\subsection{Maps and Modes}
+
+\begin{frame}{Buffer-Local Maps}{}
+
+	Global maps:
+	\vspace{2mm}
+
+	\begin{mycode}
+		inoremap  (  ()\myctrlkey{<Left>} \\[2mm]
+	\end{mycode}
+
+	\vspace{5mm}
+
+	Local to C++ buffers:
+	\vspace{2mm}
+
+	\begin{mycode}
+		inoremap  <buffer>  \{\myctrlkey{<CR>}  \{\myctrlkey{<CR>}\}\myctrlkey{<Esc>}O
+	\end{mycode} \\
+
+	\vspace{5mm}
+	Mind the \code{noremap}.
+
+\end{frame}
+
+\begin{frame}{Maps and Modes}{}
+
+	Different modes warrant and require different maps:
+	\vspace{2mm}
+
+	\begin{mycode}
+		inoremap  ( {} ()\myctrlkey{<Left>} \\
+		vnoremap  (   s()\myctrlkey{<Esc>}P
+	\end{mycode}
+
+	\vspace{5mm}
+
+	\begin{mycode}
+		inoremap  <buffer>  \{\myctrlkey{<CR>} {} \{\myctrlkey{<CR>}\}\myctrlkey{<Esc>}O \\
+		vnoremap  <buffer>  \{\myctrlkey{<CR>}   S\{\myctrlkey{<CR>}\}\myctrlkey{<Esc>}Pk=iB
+	\end{mycode}
+
+\end{frame}
+
+\begin{frame}{Calling for Help}{}
+
+	Open a dictionary for the word under the cursor: \\
+	\vspace{2mm}
+	\begin{mycode}
+		nnoremap  Hen  :call CallHelpWiki()\myctrlkey{<CR>}
+	\end{mycode}
+
+	\vspace{5mm}
+	\pause
+
+	This is easiest with a bit of VimScript: \\
+	\vspace{2mm}
+	\begin{mycode}
+		\mykeywd{function} CallHelpWiki () \\
+			\myind{..}\mykeywd{let} url {} = \mystring{"https://en.wiktionary.org/wiki/\%s"} \\
+			\myind{..}\mykeywd{let} word = \myident{expand} ( \mystring{"<cword>"} ) \\[2mm]
+
+			\myind{..}\mykeywd{let} url\_f = \myident{printf} ( url, word ) \\[2mm]
+
+			\myind{..}\mykeywd{call} \myident{system} ( \mystring{"firefox "}.url ) \\
+		\mykeywd{endfunction} \\
+	\end{mycode}
+
+\end{frame}
+
+\begin{frame}{Implementation}{}
+
+	\begin{mycode}
+		\mykeywd{function} CallHelpWiki () \\[2mm]
+
+			\myind{..}\mykeywd{let} url {} = \mystring{"https://en.wiktionary.org/wiki/\%s"} \\
+			\myind{..}\mykeywd{let} word = \myident{expand} ( \mystring{"<cword>"} ) \\
+			\myind{..}\mykeywd{let} word = \myident{substitute} ( word, \mystring{'\textbackslash{}W'}, \mystring{''}, \mystring{'g'} ) \\[2mm]
+
+			\myind{..}\mykeywd{if} word == \mystring{""} \\
+			\myind{..}\myind{..}\mykeywd{echomsg} \mystring{"no word under cursor"} \\
+			\myind{..}\myind{..}\mykeywd{return} \\
+			\myind{..}\mykeywd{endif} \\[2mm]
+
+			\myind{..}\mykeywd{let} url\_f = \myident{printf} ( url, word ) \\
+			\myind{..}\mykeywd{call} \myident{system} ( \mystring{"firefox "}.url\_f ) \\
+		\mykeywd{endfunction} \\
+	\end{mycode}
+
+\end{frame}
+
+\begin{frame}{Expression Maps}{}
+
+	Run Vim's \code{grep}. \\
+	(In Visual mode, put the selected word on the cmd.-line.) \\
+	\vspace{2mm}
+
+	\begin{mycode}
+		nmap {} {} {} {} {} {} {} <C-G>f {} {} {} {} {} {} :grep {} \%\myctrlkey{<Left><Left>} \\
+		imap {} {} {} {} {} {} {} <C-G>f {}           \myctrlkey{<Esc>}:grep {} \%\myctrlkey{<Left><Left>} \\
+		vmap <expr>               <C-G>f             "\myctrlkey{<Esc>}:grep ".@*." \%\myctrlkey{<Left><Left>}" \\
+	\end{mycode}
+
+	\vspace{5mm}
+	\pause[2]
+
+	\begin{overprint}
+		\onslide<2>
+		Maps with \code{<expr>}: \\
+		Evaluate the expression, \\
+		execute the result as the right-hand side: \\[2mm]
+		\begin{mycode}
+			\mystring{"<Esc>:grep "} .\ @* .\ \mystring{" \%<Left><Left>"}
+		\end{mycode}
+		\onslide<3>
+		Maps with \code{<expr>}: \\
+		Evaluate the expression, \\
+		execute the result as the right-hand side: \\[2mm]
+		\begin{mycode}
+			\myind{.}\myctrlkey{<Esc>}:grep selectword \%\myctrlkey{<Left><Left>}
+		\end{mycode}
+	\end{overprint}
+
+\end{frame}
+
+% Command-Line Maps   {{{1
+
+\section{Command-Line Maps}
+
+\begin{frame}{Command-Line Maps}{}
+
+	We can define maps for the command-line, using \code{cmap}:
+	\vspace{2mm}
+
+	\begin{mycode}
+		cnoremap  <C-x>c  \textbackslash(\textbackslash)\myctrlkey{<Left><Left>} \\
+		cnoremap  <C-x>w  \textbackslash<\textbackslash>\myctrlkey{<Left><Left>}
+	\end{mycode}
+
+	\vspace{2mm}
+	In the same spirit as the brackets before.
+
+\end{frame}
+
+\subsection{Example: Word-wise backspace}
+
+\begin{frame}{Let's be more ambitious}{}
+	
+	My shell supports \myctrlkey{<Alt-Backspace>} for deleting a whole word. \\
+	On the Vim cmd.-line, use \myctrlkey{<Ctrl-W>}. \\
+	\vspace{2mm}
+
+	Let's code it ourselves as an exercise. \\
+
+	\vspace{5mm}
+	\pause
+
+	Central trick: \\
+	\vspace{2mm}
+	\begin{mycode}
+		cmap  LHS  \myctrlkey{<C-\textbackslash>}e\textcolor{red}{EXPR}\myctrlkey{<CR>}
+	\end{mycode}
+
+	\vspace{2mm}
+	Evaluate \code{\textcolor{red}{EXPR}} and replace the command-line with the result.
+
+\end{frame}
+
+\begin{frame}{Implementation}{}
+
+	Use a function CmdLineWordDelete(): \\
+	\vspace{2mm}
+	\begin{mycode}
+		cmap  LHS  \myctrlkey{<C-\textbackslash>}e\textcolor{red}{CmdLineWordDelete()}\myctrlkey{<CR>}
+	\end{mycode}
+
+	\vspace{5mm}
+
+	Interface:\\
+	\vspace{2mm}
+	\begin{mycode}
+		\mykeywd{function} CmdLineWordDelete () \\
+		\myind{..}\mycommt{" ...} \\
+		\myind{..}\mykeywd{return} replacement\_string \\
+		\mykeywd{endfunction}
+	\end{mycode}
+
+\end{frame}
+
+\begin{frame}{Implementation}{cont.}
+
+	\begin{overprint}
+
+		\onslide<1>
+
+		\begin{mycode}
+			\mycommt{" current cmd.-line and position of the cursor} \\
+			\mykeywd{let} cmdline = \myident{getcmdline} () \\
+			\mykeywd{let} cmdpos {} = \myident{getcmdpos} () - 1 \\
+			\\
+			\mycommt{" split: <head><CURSOR><tail>} \\
+			\mykeywd{let} cl\_head = \myident{strpart} ( cmdline, 0, cmdpos ) \\
+			\mykeywd{let} cl\_tail = \myident{strpart} ( cmdline, cmdpos ) \\
+			\\
+			\mycommt{" replace 'cl\_head'} \\
+			\mycommt{" ...} \\
+			\\
+			\mycommt{" set new cmdline cursor position} \\
+			\mykeywd{call} \myident{setcmdpos} ( len(cl\_head)+1 ) \\
+			\\
+			\mykeywd{return} cl\_head.cl\_tail \\
+		\end{mycode}
+		
+		\onslide<2>
+
+		\begin{mycode}
+			\mycommt{" ...} \\
+			\\
+			\mycommt{" replace} \\
+			\mykeywd{if} match ( cl\_head, \mystring{'\textbackslash{}w\$'} ) > -1 \\
+			\myind{..}\mykeywd{let} cl\_head = \myident{substitute}
+				( cl\_head, \mystring{'\textbackslash{}w\textbackslash+\$'}, \mystring{''}, \mystring{''} ) \\
+			\mykeywd{else} \\
+			\myind{..}\mykeywd{let} cl\_head = \myident{substitute}
+				( cl\_head, \mystring{'.\$'}, \mystring{''}, \mystring{''} ) \\
+			\mykeywd{endif} \\
+			\\
+			\mycommt{" ...} \\
+			\\
+			\mykeywd{return} cl\_head.cl\_tail \\
+		\end{mycode}
+	\end{overprint}
+\end{frame}
+
+\subsection{Example: Keyword completion}
+
+\begin{frame}{What else can we do?}{}
+	
+	Provide \myctrlkey{<Ctrl-P>} on the cmd.-line. \\
+	\vspace{5mm}
+
+	Same method as before. \\
+	But we need to cycle through different keyword matches.
+
+\end{frame}
+
+\begin{frame}{Implementation}{}
+
+	\begin{mycode}
+		\mycommt{" current cmd.-line and position of the cursor} \\
+		\mycommt{" split: <head><CURSOR><tail>} \\[2mm]
+
+		\mykeywd{if} cl\_head \mykeywd{==} b:CmdLineLast \\
+		\myind{..}\mykeywd{let} b:CmdLineIndex {} += 1 {} {} {} \mycommt{" next match} \\
+		\mykeywd{else} \\
+		\myind{..}\mykeywd{let} b:CmdLineMatches = ... \mycommt{" search replacements} \\
+		\myind{..}\mykeywd{let} b:CmdLineIndex {} {} = 0 {} {} {} \mycommt{" first match} \\
+		\mykeywd{endif} \\[2mm]
+
+		\mycommt{" modify cl\_head} \\
+		\mykeywd{let} cl\_head = ...\ .\ b:CmdLineMatches[ b:CmdLineIndex ] \\[2mm]
+
+		\mycommt{" set new cmdline cursor position} \\[2mm]
+
+		\mykeywd{let} b:CmdLineLast = cl\_head {} {} \mycommt{" saved for next call} \\
+		\mykeywd{return} cl\_head.cl\_tail \\
+	\end{mycode}
+		
+\end{frame}
+
+\subsection{Proper Approach}
+
+\begin{frame}{The proper approach}{}
+
+	\begin{overprint}
+		\onslide<1>
+
+		Until now, public function: \\
+
+		\begin{mycode}
+			\mykeywd{function} CmdLineWordDelete () \\
+			\myind{..}\mycommt{" ...} \\
+			\mykeywd{endfunction} \\[2mm]
+%
+			cmap  <c-bs>   \myctrlkey{<C-\textbackslash>}e\textcolor{darkred}{CmdLineWordDelete()}\myctrlkey{<CR>} \\
+			cmap  <c-p> {} \myctrlkey{<C-\textbackslash>}e\textcolor{darkred}{CmdLineCompletion(-1)}\myctrlkey{<CR>} \\
+			cmap  <c-n> {} \myctrlkey{<C-\textbackslash>}e\textcolor{darkred}{CmdLineCompletion(1)}\myctrlkey{<CR>}
+		\end{mycode}
+
+		\onslide<2>
+
+		Local implementation: \\
+
+		\begin{mycode}
+			\mykeywd{function} s:CmdLineWordDelete () \\
+			\myind{..}\mycommt{" ...} \\
+			\mykeywd{endfunction} \\[2mm]
+%
+			cmap  <c-bs>   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineWordDelete()\myctrlkey{<CR>} \\
+			cmap  <c-p> {} \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineCompletion(-1)\myctrlkey{<CR>} \\
+			cmap  <c-n> {} \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineCompletion(1)\myctrlkey{<CR>}
+		\end{mycode}
+
+		\onslide<3>
+
+		Local implementation and separate configuration: \\
+
+		\begin{mycode}
+			\mykeywd{function} s:CmdLineWordDelete () \\
+			\myind{..}\mycommt{" ...} \\
+			\mykeywd{endfunction} \\[2mm]
+%
+			cmap  <Plug>MapsClWd   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineWordDelete()\myctrlkey{<CR>} \\
+			cmap  <Plug>MapsClCp   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineCompletion(-1)\myctrlkey{<CR>} \\
+			cmap  <Plug>MapsClCn   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineCompletion(1)\myctrlkey{<CR>}
+		\end{mycode}
+
+		\onslide<4>
+
+		Local implementation and separate configuration: \\
+
+		\begin{mycode}
+			cmap  <c-bs>   <Plug>MapsClWd \\
+			cmap  <c-p> {} <Plug>MapsClCp \\
+			cmap  <c-n> {} <Plug>MapsClCn \\[2mm]
+%
+			cmap  <Plug>MapsClWd   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineWordDelete()\myctrlkey{<CR>} \\
+			cmap  <Plug>MapsClCp   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineCompletion(-1)\myctrlkey{<CR>} \\
+			cmap  <Plug>MapsClCn   \myctrlkey{<C-\textbackslash>}e\myctrlkey{<SID>}CmdLineCompletion(1)\myctrlkey{<CR>}
+%
+		\end{mycode}
+	\end{overprint}
+
+\end{frame}
+
+% User-Defined Commands   {{{1
+
+\section{User-Defined Commands}
+
+\begin{frame}{Ex-Commands}{}
+
+	Another powerful mechanism: \\
+	User-defined \textit{ex-commands}. \\
+
+	\vspace{5mm}
+	\pause
+
+	Consider a \code{make} plug-in: \\
+	\vspace{2mm}
+
+	\begin{mycode}
+		command -complete=file MakeFile \\
+		\myind{....}:call \myctrlkey{<SID>}SetMakeFile(<q-args>) \\
+		command -complete=customlist,\myctrlkey{<SID>}MakeComplete Make \\
+		\myind{....}:call \myctrlkey{<SID>}Run(<q-args>) \\
+	\end{mycode}
+
+	\vspace{5mm}
+	\pause
+
+	We can provide custom tab-completion.
+
+\end{frame}
+
+\subsection{Example: Make-target completion}
+
+\begin{frame}{Tab-Completion}{}
+
+	\begin{mycode}
+		... -complete=customlist,\myctrlkey{<SID>}MakeComplete ... \\[5mm]
+
+		\mykeywd{function} s:MakeComplete( ArgLead, CmdLine, CursorPos ) \\
+		\myind{..}\mykeywd{let} targets = s:GetMakeTargets( s:Makefile ) \\[2mm]
+
+		\myind{..}\mykeywd{return} \myident{filter}( \myident{copy}( targets ), ...\myident{a:ArgLead}... )) \\
+		\mykeywd{endfunction}
+	\end{mycode}
+
+	\vspace{5mm}
+	\pause
+
+	But this breaks tab-completions for filenames!
+
+\end{frame}
+
+\begin{frame}{Tab-Completion}{}
+
+	\begin{mycode}
+		... -complete=customlist,\myctrlkey{<SID>}MakeComplete ... \\[5mm]
+
+		\mykeywd{function} s:MakeComplete( ArgLead, CmdLine, CursorPos ) \\
+			\myind{..}\mykeywd{let} files {} {} = \myident{split}( \myident{glob}( \myident{a:ArgLead}.\mystring{"*"} ), \mystring{"\textbackslash{}n"} )
+			\myind{..}\mykeywd{let} targets = s:GetMakeTargets( s:Makefile ) \\[2mm]
+
+			\myind{..}\mykeywd{return} \myident{filter}( \myident{copy}( targets ), ...\myident{a:ArgLead}...\ )\ ) \\
+			\myind{.....}+ files \\
+		\mykeywd{endfunction}
+	\end{mycode}
+
+	\vspace{5mm}
+	\pause
+
+	Sufficient for this use-case, \\
+	but Vim's filename completion is still nicer.
+
+\end{frame}
+
+% Putting It All Together   {{{1
+
+\section{Putting It All Together}
+
+\subsection{Example: Calling help}
+
+\begin{frame}{Calling for Help}{cont.}
+
+	\begin{overprint}
+		\onslide<1>
+
+		Let's revisit this example: \\[2mm]
+		\begin{mycode}
+			\mykeywd{function} CallHelpWiki () \\[2mm]
+%
+			\myind{..}\mykeywd{let} url {} = \mystring{"https://en.wiktionary.org/wiki/\%s"} \\
+			\myind{..}\mykeywd{let} word = \myident{expand} ( \mystring{"<cword>"} ) \\
+			\myind{..}\mykeywd{let} word = \myident{substitute} ( word, \mystring{'\textbackslash{}W'}, \mystring{''}, \mystring{'g'} ) \\[2mm]
+%
+			\myind{..}\mykeywd{if} word == \mystring{""} \\
+			\myind{..}\myind{..}\mykeywd{echomsg} \mystring{"no word under cursor"} \\
+			\myind{..}\myind{..}\mykeywd{return} \\
+			\myind{..}\mykeywd{endif} \\[2mm]
+%
+			\myind{..}\mykeywd{let} url\_f = \myident{printf} ( url, word ) \\
+			\myind{..}\mykeywd{call} \myident{system} ( \mystring{"firefox "}.url\_f ) \\
+			\mykeywd{endfunction} \\
+		\end{mycode}
+
+		\onslide<2>
+
+		Use a local function and an argument: \\[2mm]
+		\begin{mycode}
+			\mykeywd{function} s:CallHelp ( url ) \\[2mm]
+%
+			\myind{..}\mykeywd{let} url {} = \myident{a:url} \\
+			\myind{..}\mykeywd{let} word = \myident{expand} ( \mystring{"<cword>"} ) \\
+			\myind{..}\mykeywd{let} word = \myident{substitute} ( word, \mystring{'\textbackslash{}W'}, \mystring{''}, \mystring{'g'} ) \\[2mm]
+%
+			\myind{..}\mykeywd{if} word == \mystring{""} \\
+			\myind{..}\myind{..}\mykeywd{echomsg} \mystring{"no word under cursor"} \\
+			\myind{..}\myind{..}\mykeywd{return} \\
+			\myind{..}\mykeywd{endif} \\[2mm]
+%
+			\myind{..}\mykeywd{let} url\_f = \myident{printf} ( url, word ) \\
+			\myind{..}\mykeywd{call} \myident{system} ( \mystring{"firefox "}.url\_f ) \\
+			\mykeywd{endfunction} \\
+		\end{mycode}
+
+	\end{overprint}
+
+\end{frame}
+
+\begin{frame}{Calling for Help}{cont.}
+
+	Provide an ex-command: \\[2mm]
+	\begin{mycode}
+		\mykeywd{function} s:CallHelp ( url ) \\
+		\myind{..}\mycommt{" ...} \\
+		\mykeywd{endfunction} \\[3mm]
+
+		\mykeywd{command} MapathonHelp :call \myctrlkey{<SID>}CallHelp(<q-args>) \\[3mm]
+
+		\mykeywd{nnoremap} Hen :MapathonHelp \\
+		\myind{..}https://en.wiktionary.org/wiki/\textcolor{darkred}{\%s}\myctrlkey{<CR>} \\
+		\mykeywd{nnoremap} Hcp :MapathonHelp \\
+		\myind{..}http://en.cppreference.com/mwiki/...search=\textcolor{darkred}{\%s}\myctrlkey{<CR>} \\
+		\mykeywd{nnoremap} Hqt :MapathonHelp \\
+		\myind{..}http://qt-project.org/doc/qt-4.8/\textcolor{darkred}{\%s}.html\myctrlkey{<CR>}
+	\end{mycode}
+
+\end{frame}
+
+\subsection{Demonstration}
+
+\begin{frame}{Demonstration}{}
+
+	Integrate some often used tools into Git. \\[5mm]
+
+	Demonstration: Git, \dots
+
+\end{frame}
+
+% }}}1
+
+\end{document}
+
+%%----------------------------------------------------------------------
+%%  vim: spell: foldmethod=marker
